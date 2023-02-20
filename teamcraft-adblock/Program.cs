@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.IO;
+using System.Text.RegularExpressions;
 using AsarSharp;
 
 Console.Write(@"  _                                                  _ _     _            _    
@@ -24,14 +25,45 @@ if (VersionID.Success)
 
     using (AsarExtractor ae = new(tcasar.FullName, ".\\app"))
     {
-        ae.Extract();
+        try
+        {
+            ae.Extract();
+        } catch (IOException e)
+        {
+            Console.WriteLine("Unable to extract, is teamcraft still open?\n" + e.StackTrace);
+        }
+        
     }
 
     Console.WriteLine("Patching & Repacking...");
     string newmainwindow = File.ReadAllText(fileout.FullName);
-    newmainwindow = newmainwindow.Replace("filter,", "{},");
+    File.WriteAllText(fileout.FullName, newmainwindow.Replace("filter,", "{},"));
 
-    File.WriteAllText(fileout.FullName, newmainwindow);
+    string[] jsfiles = Directory.GetFiles(".\\app\\dist\\apps\\client\\", "main.*.js");
+    try
+    {
+        FileInfo mainjs = new(jsfiles[0]);
+        Console.WriteLine($"Patching {mainjs.Name}");
+        string newmainjs = File.ReadAllText(mainjs.FullName);
+        Match jscdn = Regex.Match(newmainjs, @"\w+\.setAttribute\(""src"",.https:/.+?\.js.\),");
+        if (jscdn.Success)
+        {
+            //newmainjs = newmainjs
+            File.WriteAllText(mainjs.FullName, newmainjs.Remove(jscdn.Index, jscdn.Length));
+
+        } else
+        {
+            Console.WriteLine("Could not locate cdn attribute");
+        }
+    } catch(ArgumentNullException e)
+    {
+        Console.WriteLine("Could not patch out ad provider directly");
+        Console.WriteLine("Trace: " + e.StackTrace);
+        Console.ReadKey();
+    }
+    
+
+
     using (AsarArchiver aa = new(".\\app", ".\\app.asar"))
     {
         aa.Archive();
