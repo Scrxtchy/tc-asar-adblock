@@ -10,7 +10,7 @@ Console.Write(@"  _                                                  _ _     _  
   \__\___|      \__,_|___/\__,_|_|         \__,_|\__,_|_.__/|_|\___/ \___|_|\_\
 ");
 
-FileInfo fileout = new(".\\app\\dist\\apps\\electron\\src\\window\\main-window.js");
+FileInfo fileout = new(".\\app\\dist\\apps\\electron\\main.js");
 
 FileInfo version = new($"{Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)}\\ffxiv-teamcraft\\packages\\RELEASES");
 Console.WriteLine("Finding Teamcraft Version");
